@@ -1,0 +1,68 @@
+class LFUCache {
+public:
+    unordered_map<int,list<vector<int>>>freq;
+    unordered_map<int,list<vector<int>>::iterator>mp;
+    int size;
+    int low;
+
+    LFUCache(int capacity) {
+        size = capacity;
+    }
+    
+    void insertKey(int key,int value,int f){
+
+        freq[f].push_front({key,value,f});
+        mp[key]=freq[f].begin();
+    }
+
+    vector<int> removeKey(int key){
+
+        auto it = mp[key];
+        vector<int>temp=*it;
+        int val = temp[1];
+        int f = temp[2];
+
+        freq[f].erase(it);
+        if(f==low && freq[f].empty()){
+            low++;
+            
+        }
+        mp.erase(key);
+        return temp;
+    }
+
+    int get(int key) {
+        if(mp.find(key) == mp.end())return -1;
+        vector<int>temp = removeKey(key);
+        int f = temp[2];
+        int val = temp[1];
+        insertKey(key,val,f+1);
+        return val;
+    }
+    
+    void put(int key, int value) {
+        if(mp.find(key) != mp.end()){
+            vector<int>temp = removeKey(key);
+            insertKey(key,value,temp[2]+1);
+            return;
+            
+        }
+        if(mp.size()==size){
+                vector<int>temp = freq[low].back();
+                freq[low].pop_back();
+                if(freq[low].empty())low++;
+                mp.erase(temp[0]);
+                
+            }
+        insertKey(key,value,1);
+        low=1;
+       
+    }
+};
+
+/**
+ * Your LFUCache object will be instantiated and called as such:
+ * LFUCache* obj = new LFUCache(capacity);
+ * int param_1 = obj->get(key);
+ * obj->put(key,value);
+ */
